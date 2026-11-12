@@ -1,0 +1,358 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Bond Voyage</title>
+<link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&family=Nunito:wght@600;800&display=swap" rel="stylesheet">
+<style>
+:root{--grass:#7fc79a;--grass2:#6fb98a;--sand:#f0dc96;--ink:#2b3a33;--paper:#fffdf4;--red:#d9534f;--green:#3f9b5f;--blue:#4a8fd4}
+*{box-sizing:border-box}
+body{margin:0;background:#1f3b2c;color:var(--ink);font-family:'Nunito',sans-serif;min-height:100vh}
+h1,h2,h3,.px{font-family:'Press Start 2P',monospace;line-height:1.5}
+.wrap{max-width:860px;margin:0 auto;padding:12px}
+.bar{display:flex;flex-wrap:wrap;gap:8px;align-items:center;justify-content:space-between;background:var(--paper);border:4px solid var(--ink);padding:8px 12px;margin-bottom:10px}
+.bar .px{font-size:11px}.chips{display:flex;gap:6px;flex-wrap:wrap}
+.chip{border:3px solid var(--ink);padding:3px 8px;font-size:13px;font-weight:800;background:#fff}.chip.done{background:#bdf0c8}.chip.lock{background:#ddd;color:#777}
+button{font-family:inherit;font-weight:800;cursor:pointer}
+.btn{background:var(--blue);color:#fff;border:3px solid var(--ink);padding:10px 16px;font-size:15px;box-shadow:0 4px 0 var(--ink);margin:4px 4px 0 0}
+.btn:active{transform:translateY(3px);box-shadow:none}.btn.g{background:var(--green)}.btn.r{background:var(--red)}.btn.w{background:#fff;color:var(--ink)}
+.map{position:relative;width:100%;aspect-ratio:3/4;max-height:78vh;margin:auto;border:4px solid var(--ink);overflow:hidden;background:repeating-conic-gradient(var(--grass) 0 25%,var(--grass2) 0 50%) 0 0/28px 28px}
+.map svg{position:absolute;inset:0;width:100%;height:100%}
+.tree{position:absolute;font-size:26px;transform:translate(-50%,-50%);pointer-events:none}
+.st{position:absolute;transform:translate(-50%,-50%);border:0;background:none;text-align:center;padding:0;width:150px}
+.roof{height:30px;background:var(--c);border:3px solid var(--ink);border-bottom:0;clip-path:polygon(8% 0,92% 0,100% 100%,0 100%)}
+.wall{background:#f6e7b8;border:3px solid var(--ink);height:38px;display:flex;align-items:center;justify-content:center;font-size:20px;position:relative}
+.wall:before{content:"";position:absolute;left:12px;width:18px;height:16px;background:#8fc7ef;border:2px solid var(--ink)}
+.wall:after{content:"";position:absolute;right:16px;bottom:0;width:16px;height:24px;background:#8a5a34;border:2px solid var(--ink);border-bottom:0}
+.wall span{position:relative;z-index:1;margin-left:6px}
+.lbl small{display:block;font-size:11px;font-weight:600}.lbl{display:inline-block;line-height:1.25;margin-top:4px;background:var(--paper);border:3px solid var(--ink);padding:2px 6px;font-size:12px;font-weight:800}
+.st:not(:disabled){animation:bob 1.6s steps(2) infinite}@keyframes bob{50%{margin-top:-4px}}
+.st:disabled{cursor:not-allowed}.st.locked{filter:grayscale(1) brightness(.8)}.st.done{filter:saturate(.7)}
+.pr{position:absolute;transform:translate(-50%,0);border:3px solid var(--ink);padding:3px 8px;font-size:12px;font-weight:800;background:#fff3b0;box-shadow:0 3px 0 var(--ink)}
+.pr:disabled{background:#ddd;color:#777;cursor:not-allowed;box-shadow:none}.pr.done{background:#bdf0c8}
+.hudnote{background:var(--paper);border:4px solid var(--ink);padding:10px;margin-top:10px;font-size:14px}
+.ov{position:fixed;inset:0;background:rgba(20,40,30,.93);display:none;z-index:10;overflow:auto}.ov.on{display:block}
+.top{display:flex;justify-content:space-between;align-items:center;padding:10px 12px;color:#fff;gap:8px;max-width:1000px;margin:auto}
+.top .px{font-size:11px}
+.sq{width:44px;height:44px;border:3px solid var(--ink);font-size:20px;background:#fff;box-shadow:0 3px 0 var(--ink)}.sq.x{background:var(--red);color:#fff}
+.scene{perspective:1400px;max-width:1000px;margin:6px auto;padding:0 12px}
+.card{position:relative;height:min(74vh,700px);transition:transform .7s;transform-style:preserve-3d}.card.flip{transform:rotateY(180deg)}
+.face{position:absolute;inset:0;background:var(--paper);border:5px solid var(--ink);box-shadow:0 8px 0 rgba(0,0,0,.35);padding:16px;overflow:auto;backface-visibility:hidden;-webkit-backface-visibility:hidden}
+.flat{position:relative;inset:auto;backface-visibility:visible;min-height:260px}
+.back{transform:rotateY(180deg)}
+.face h3{font-size:12px;margin:0 0 10px}
+.q{font-size:19px;font-weight:800;margin-bottom:10px;white-space:pre-line}
+.opt{display:block;width:100%;text-align:left;margin:7px 0;padding:11px;border:3px solid var(--ink);background:#fff;font-size:16px}.opt:hover{background:#e6f1ff}
+.og{display:grid;grid-template-columns:repeat(4,1fr);gap:8px}.og .opt{text-align:center;font-size:20px}
+.pic{display:block;max-width:100%;max-height:48vh;margin:6px auto;border:2px solid #ccc;background:#fff}
+.slide{display:block;width:100%;max-height:60vh;object-fit:contain;border:3px solid var(--ink);background:#fff}
+.ph{height:150px;border:3px dashed #9a9a8a;display:flex;align-items:center;justify-content:center;color:#888}
+.ok{color:var(--green)}.no{color:var(--red)}.res{font-size:14px;margin:8px 0}
+.foot{max-width:1000px;margin:6px auto 20px;padding:0 12px;display:flex;justify-content:space-between;align-items:center;gap:8px;flex-wrap:wrap;color:#fff}
+.meter{flex:1;min-width:160px;height:18px;border:3px solid #fff;background:#13261c}.meter i{display:block;height:100%;background:#7fe3a0;transition:width .4s}
+.slim{max-width:640px;margin:20px auto;padding:0 12px}
+.panel{background:var(--paper);border:4px solid var(--ink);padding:14px;margin-bottom:12px}.panel h3{font-size:12px;margin-top:0}
+.badge{display:inline-block;margin:4px;padding:6px 10px;border:3px solid var(--ink);background:#ffe58a;font-weight:800;font-size:14px}
+.badge.lk{background:#e3e3dc;color:#999;border-style:dashed}
+li{margin:4px 0}.pop{position:fixed;left:50%;top:14px;transform:translateX(-50%);background:#ffe58a;border:4px solid var(--ink);padding:8px 14px;font-weight:800;z-index:60}
+input.u{font:inherit;font-size:17px;padding:10px;border:3px solid var(--ink);width:100%;margin:8px 0;background:#fff}.err{color:var(--red);font-weight:800;min-height:1.3em}
+.note{color:#fff;font-size:13px;text-align:center;max-width:1000px;margin:6px auto;padding:0 12px}sub,sup{line-height:0}.brow{display:flex;gap:10px;align-items:center;margin:5px 0;flex-wrap:wrap}.bdesc{font-size:13px;color:#555;flex:1;min-width:200px}
+@media print{body>*:not(#fin){display:none!important}#fin{position:static!important;display:block!important;background:#fff!important;overflow:visible!important}#fin .btn,#fin .noprint{display:none!important}.panel{break-inside:avoid}.brow,.badge{break-inside:avoid;-webkit-print-color-adjust:exact;print-color-adjust:exact}body{background:#fff}.slim{margin:0 auto}}.card .q sub,.opt sub{font-size:.7em}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <div class="bar"><span class="px" id="gtitle">LOADING…</span><div class="chips" id="chips"></div><span class="px" id="score">0 pts</span></div>
+  <div class="map" id="map"><svg viewBox="0 0 100 100" preserveAspectRatio="none">
+    <path d="M50 96 V86 Q50 78 30 78 H22 Q12 78 12 68 V62 Q12 54 30 54 H66 Q84 54 84 44 V38 Q84 30 66 30 H34 Q16 30 16 20 Q16 10 34 10 H50" fill="none" stroke="#e0c878" stroke-linejoin="round" style="stroke-width:34px"/>
+    <path d="M50 96 V86 Q50 78 30 78 H22 Q12 78 12 68 V62 Q12 54 30 54 H66 Q84 54 84 44 V38 Q84 30 66 30 H34 Q16 30 16 20 Q16 10 34 10 H50" fill="none" stroke="#f0dc96" stroke-linejoin="round" style="stroke-width:26px"/></svg></div>
+  <div class="hudnote" id="note"></div>
+  <div style="margin-top:10px"><button class="btn r" onclick="askEnd()">🏁 End game &amp; see my report</button> <button class="btn w" onclick="askNewMap()">🔄 Start a new attempt</button></div>
+</div>
+<div class="ov on" id="intro"><div class="slim"><div class="panel" id="introBody">Loading content…</div></div></div>
+<div class="ov" id="sov">
+  <div class="top"><span class="px" id="stitle"></span>
+    <span><button class="sq" id="hintBtn" title="Hint" onclick="showHint()">💡</button> <button class="sq x" title="Exit" onclick="exitStation()">✕</button></span></div>
+  <div id="sbody"></div><div class="note" id="snote"></div><div class="foot" id="foot"></div>
+</div>
+<div class="ov" id="hov" style="z-index:20"><div class="scene" style="margin-top:50px"><div class="face flat"><h3 id="hTitle">Hint</h3><div id="hintText"></div><br><button class="btn" onclick="$('hov').classList.remove('on')">Got it</button></div></div></div>
+<div class="ov" id="xov" style="z-index:40"><div class="slim" style="margin-top:80px"><div class="panel"><h3 id="xT"></h3><div id="xM" style="margin-bottom:8px"></div>
+  <button class="btn r" id="xY"></button><button class="btn" onclick="$('xov').classList.remove('on')">Cancel</button></div></div></div>
+<div class="ov" id="fin"><div class="slim" id="finBody"></div></div>
+<script src="settings.js"></script>
+<script src="content.js"></script>
+<script>
+const $=id=>document.getElementById(id);
+const esc=s=>String(s??'').replace(/[&<>]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;'}[c]));
+const rich=s=>esc(s).replace(/&lt;(\/?)(sub|sup|b)&gt;/g,'<$1$2>'),bold=s=>esc(s).replace(/\*\*(.+?)\*\*/g,'<b>$1</b>'),plain=s=>String(s??'').replace(/<[^>]+>/g,'');
+const shuffle=a=>{a=[...a];for(let i=a.length-1;i>0;i--){const j=Math.random()*(i+1)|0;[a[i],a[j]]=[a[j],a[i]]}return a};
+const fmt=ms=>{const s=Math.round(ms/1000);return Math.floor(s/60)+'m '+String(s%60).padStart(2,'0')+'s'};
+const sec=ms=>Math.round(ms/100)/10;
+const LS='bondvoyage_users',loadU=()=>{try{return JSON.parse(localStorage.getItem(LS))||{}}catch(e){return{}}},saveU=u=>{try{localStorage.setItem(LS,JSON.stringify(u))}catch(e){}};
+let G,STATIONS,BADGES,BDESC={},S=null,U,REFS=[],lastAct=Date.now();
+const saveUserLocal=()=>{const all=loadU();all[U.key]=U;saveU(all)},ckey=c=>c.kind+'|'+c.st.id+'|'+c.ci;
+['pointerdown','keydown','scroll','touchstart'].forEach(e=>addEventListener(e,()=>lastAct=Date.now(),{passive:true}));
+
+Promise.resolve(typeof DATA!=='undefined'?DATA:null).then(d=>{if(!d)throw 0;init(d)}).catch(()=>{
+  $('introBody').innerHTML='<h3>Could not load the game content</h3><p>Make sure <b>content.js</b> was uploaded next to <b>index.html</b>, then refresh.</p>'});
+
+function init(d){
+  G=d.game;STATIONS=d.stations;REFS=d.references||[];document.title=G.title;$('gtitle').textContent=G.title.toUpperCase();
+  const SE=window.SETTINGS||{};G.collectUrl=SE.collectUrl||G.collectUrl||'';G.surveyUrl=SE.surveyUrl||G.surveyUrl||'';
+  BADGES=[];BDESC={};
+  STATIONS.forEach(s=>{s.badges={};for(const k in G.stationBadges){const n=G.stationBadges[k].replace('{station}',s.name);s.badges[k]=n;BADGES.push(n);BDESC[n]=(G.badgeDesc[k]||'').replace('{station}',s.name)}});
+  for(const k in G.gameBadges){BADGES.push(G.gameBadges[k]);BDESC[G.gameBadges[k]]=G.badgeDesc[k]||''}
+  $('introBody').innerHTML=`<h2 style="font-size:16px">${esc(G.title)}</h2><p><i>${esc(G.subtitle||'')}</i></p>
+   <div style="white-space:pre-line;font-size:15px;line-height:1.5">${bold(G.instructions)}</div><hr>
+   <b>Choose a username to track your attempts:</b><input class="u" id="uname" maxlength="30" placeholder="e.g. alex123" oninput="welcomeBack()" onkeydown="if(event.key==='Enter')begin()">
+   <div id="uinfo" style="font-size:14px"></div><div class="err" id="uerr"></div><button class="btn" onclick="begin()">Start adventure</button>`;
+}
+const lastAttempt=u=>(u.attempts||[]).reduce((m,a)=>Math.max(m,a.n),0);
+function welcomeBack(){$('uerr').textContent='';const n=$('uname').value.trim().toLowerCase(),u=n&&loadU()[n];$('uinfo').textContent=u?`Welcome back, ${u.name}! This will be attempt ${lastAttempt(u)+1}.`:''}
+function begin(){
+  const name=$('uname').value.trim();if(!name){$('uerr').textContent='Enter a username to start.';return}
+  const all=loadU(),key=name.toLowerCase();U=all[key]||{name,attempts:[]};U.key=key;$('intro').classList.remove('on');newGame();
+}
+function newGame(from){
+  U.earned=U.earned||{};U.seen=U.seen||{};U.qseen=U.qseen||{};
+  S={n:lastAttempt(U)+1,round:1,startedAt:Date.now(),roundStart:Date.now(),cd:{},pd:{},cf:{},st:{},done:{},pracDone:{},route:[],cRoute:[],pRoute:[],opened:[],score:0,badges:Object.keys(U.earned),
+     log:[],visits:[],times:{},roundBadges:{},cur:null,finished:false,sent:{},autoShown:false,downloaded:false,restartedFrom:typeof from==='string'?from:''};
+  STATIONS.forEach(s=>{S.cd[s.id]=s.concepts.map(()=>false);S.pd[s.id]=s.practice.map(()=>false);S.st[s.id]={time:0}});
+  $('fin').classList.remove('on');$('sov').classList.remove('on');lastAct=Date.now();renderMap();
+}
+const nm=id=>STATIONS.find(x=>x.id===id).name,isLocked=id=>(STATIONS.find(x=>x.id===id).requires||[]).some(r=>!S.done[r]);
+const lockNote=()=>STATIONS.filter(s=>isLocked(s.id)).map(s=>`🔒 ${esc(s.name)} unlocks after: ${s.requires.filter(r=>!S.done[r]).map(nm).join(' + ')}`).join('<br>');
+const cnt=a=>a.filter(Boolean).length,totalC=()=>STATIONS.reduce((n,s)=>n+s.concepts.length,0),doneC=()=>STATIONS.reduce((n,s)=>n+cnt(S.cd[s.id]),0);
+function pop(m){const d=document.createElement('div');d.className='pop';d.textContent='🏅 '+m;document.body.appendChild(d);setTimeout(()=>d.remove(),2600)}
+function addBadge(n){if(!S.badges.includes(n)){S.badges.push(n);U.earned=U.earned||{};if(!U.earned[n])U.earned[n]=S.n;saveUserLocal();pop(n)}}
+function ask(title,msg,yes,fn){$('xT').textContent=title;$('xM').innerHTML=msg;$('xY').textContent=yes;$('xY').onclick=()=>{$('xov').classList.remove('on');fn()};$('xov').classList.add('on')}
+
+function renderMap(){
+  const m=$('map');m.querySelectorAll('.st,.tree,.pr').forEach(e=>e.remove());
+  for(let i=0;i<70;i++){const x=Math.random()*100,y=Math.random()*100;
+    if((x>38&&x<62)||(y>26&&y<34)||(y>50&&y<58)||(y>74&&y<82)||(x<20&&y>56)||(x>76&&y>26&&y<58))continue;
+    const t=document.createElement('div');t.className='tree';t.style.left=x+'%';t.style.top=y+'%';t.textContent='🌲';m.appendChild(t)}
+  STATIONS.forEach(s=>{
+    const done=S.done[s.id],lock=isLocked(s.id),b=document.createElement('button');
+    b.className='st'+(done?' done':'')+(lock?' locked':'');b.disabled=lock||(done&&S.round===1);b.style.left=s.x+'%';b.style.top=s.y+'%';b.style.setProperty('--c',s.color);
+    b.innerHTML=`<div class="roof"></div><div class="wall"><span>${done?'✅':lock?'🔒':''}</span></div><span class="lbl">${esc(s.name)}<small>Concepts completed: ${cnt(S.cd[s.id])}/${s.concepts.length}</small></span>`;
+    b.onclick=()=>openStation(s.id,'m');m.appendChild(b);
+    const p=document.createElement('button'),has=s.practice.length>0;
+    p.className='pr'+(S.pracDone[s.id]?' done':'');p.disabled=!done||!has;p.style.left=s.x+'%';p.style.top=`calc(${s.y}% + 68px)`;
+    p.textContent=!has?'CoMS concepts: coming soon':done?`✏️ CoMS concepts: ${cnt(S.pd[s.id])}/${s.practice.length}`:'🔒 CoMS concepts (optional)';
+    p.onclick=()=>openStation(s.id,'p');m.appendChild(p)});
+  $('chips').innerHTML=STATIONS.map(s=>`<span class="chip ${S.done[s.id]?'done':isLocked(s.id)?'lock':''}">${esc(s.name)}${S.done[s.id]?' ✓':isLocked(s.id)?' 🔒':''}</span>`).join('')+`<span class="chip">Concepts ${doneC()}/${totalC()}</span>`;
+  $('score').textContent=S.score+' pts';
+  $('note').innerHTML=`<b>Player:</b> ${esc(U.name)} · attempt ${S.n}, round ${S.round}<br><b>Route so far:</b> ${S.route.length?S.route.map(nm).join(' → '):'not started – choose an unlocked station!'}<br><b>Concepts covered:</b> ${doneC()} / ${totalC()}<br><b>Badges:</b> ${S.badges.length}/${BADGES.length}${lockNote()?'<br>'+lockNote():''}`;
+}
+
+/* ---------- station → concept menu → flashcards → questions ---------- */
+const LIST=c=>c.kind==='p'?c.st.practice:c.st.concepts,DN=c=>c.kind==='p'?S.pd:S.cd;
+function openStation(id,kind){if(!S.opened.includes(id))S.opened.push(id);S.cur={st:STATIONS.find(s=>s.id===id),kind,mode:'menu',ci:null};$('sov').classList.add('on');showMenu()}
+function showMenu(){
+  const c=S.cur,st=c.st,L=LIST(c),dn=DN(c)[st.id],isP=c.kind==='p';c.mode='menu';c.ci=null;c.key='';c.q=null;
+  $('stitle').textContent=st.name+(isP?' · CoMS concepts':'');$('hintBtn').style.visibility='hidden';$('snote').textContent='';foot();
+  $('sbody').innerHTML=`<div class="scene"><div class="face flat"><h3>${isP?'Optional: how this links to CoMS':'Choose a concept'}</h3>
+   <p>Concepts completed: <b>${cnt(dn)} / ${L.length}</b>. Pick them in any order. Finished concepts are saved, so you can leave whenever you like.${S.round>1?' Finished concepts can be replayed to try for the no-wrong-answer and no-hint badges.':''}</p>
+   ${L.map((cn,i)=>dn[i]?(S.round>1?`<button class="opt" onclick="startConcept(${i})">🔁 ${rich(cn.name)} – completed (replay)</button>`:`<button class="opt" disabled>✅ ${rich(cn.name)} – completed</button>`):`<button class="opt" onclick="startConcept(${i})">▶ ${rich(cn.name)}</button>`).join('')}
+   <button class="btn w" onclick="leaveStation()">Back to map</button></div></div>`;
+}
+function startConcept(i){
+  const c=S.cur,cn=LIST(c)[i];c.ci=i;c.mode='refresh';c.cs={start:Date.now(),flashEnd:null,qSum:0,wrong:0,hint:false,seen:[],closed:false};c.key=cn.name+' '+(cn.reference||'');
+  c.slides=cn.refresher;c.si=0;$('stitle').textContent=c.st.name+' · '+plain(cn.name);$('snote').textContent='';foot();showSlide();
+}
+function endVisit(done){
+  const c=S.cur;if(!c||!c.cs||c.cs.closed)return;c.cs.closed=true;const n=Date.now();
+  const v={station:c.st.id,concept:plain(LIST(c)[c.ci].name),kind:c.kind==='p'?'CoMS':'Main',round:S.round,flashMs:(c.cs.flashEnd||n)-c.cs.start,qMs:c.cs.qSum,totalMs:n-c.cs.start,wrong:c.cs.wrong,hint:c.cs.hint,completed:done};
+  S.visits.push(v);return v;
+}
+function showSlide(){
+  const c=S.cur,s=c.slides,last=!s.length||c.si>=s.length-1;c.mode='refresh';$('hintBtn').style.visibility='hidden';
+  if(last&&!U.seen[ckey(c)]){U.seen[ckey(c)]=true;saveUserLocal()}
+  $('sbody').innerHTML=`<div class="scene"><div class="face flat"><h3>Flashcards · ${rich(LIST(c)[c.ci].name)}${s.length?` · ${c.si+1}/${s.length}`:''}</h3>
+   ${s.length?`<img class="slide" src="${s[c.si]}" alt="flashcard">`:'<div class="ph">No flashcard yet</div>'}
+   <p style="font-size:13px;color:#666">Review every card first. “Skip to questions” unlocks once you have been through all of them.</p>
+   <div>${c.si>0?'<button class="btn w" onclick="S.cur.si--;showSlide()">◀ Back</button>':''}
+   ${!last?'<button class="btn" onclick="S.cur.si++;showSlide()">Next ▶</button>':'<button class="btn g" onclick="readyCard()">Start questions</button>'}</div></div></div>`;
+  foot();
+}
+function readyCard(){
+  const c=S.cur;c.mode='ready';$('hintBtn').style.visibility='hidden';foot();
+  $('sbody').innerHTML=`<div class="scene"><div class="face flat"><h3>Are you ready?</h3>
+   <p style="font-size:18px">Are you ready? Once you start the question you won't be able to see the flashcards so make sure you look at them carefully!</p>
+   <button class="btn g" onclick="nextQ()">I'm ready – start questions</button><button class="btn w" onclick="showSlide()">◀ Back to flashcards</button></div></div>`;
+}
+function foot(){
+  const c=S.cur;if(!c){$('foot').innerHTML='';return}
+  const st=c.st,L=LIST(c),k=cnt(DN(c)[st.id]),n=L.length;
+  const ref=c.mode==='q'&&refSlides(c).length?'<button class="btn w" onclick="showRef()">📄 Reference</button>':'';
+  let skip='';
+  if(c.ci!=null&&c.mode!=='between'){
+    if(c.mode==='refresh'){const ok=!c.slides.length||U.seen[ckey(c)];skip+=ok?'<button class="btn w" onclick="readyCard()">⏭ Skip to questions</button>':'<button class="btn w" disabled title="Look through all the flashcards first">🔒 Skip to questions</button>'}
+    skip+='<button class="btn w" onclick="skipConcept()" title="Skips this whole concept and goes back to the concept list">🚪 Skip entire concept</button>'}
+  $('foot').innerHTML=`${ref}<span>${c.ci!=null?`Concept ${c.ci+1}/${n} · `:''}Station: <b>${k} / ${n}</b> · Overall concepts: <b>${doneC()} / ${totalC()}</b></span><div class="meter"><i style="width:${k/n*100}%"></i></div>${skip}`;
+}
+function skipConcept(){endVisit(false);showMenu()}
+function pickQ(){
+  const c=S.cur,qs=LIST(c)[c.ci].questions,ck=ckey(c),idx=qs.map((_,k)=>k);U.qseen=U.qseen||{};
+  let pool=idx.filter(k=>!(U.qseen[ck]||[]).includes(k)&&!c.cs.seen.includes(k));
+  if(!pool.length){U.qseen[ck]=[];pool=idx.filter(k=>!c.cs.seen.includes(k));if(!pool.length){c.cs.seen=[];pool=idx.slice()}}
+  const k=pool[Math.random()*pool.length|0];c.cs.seen.push(k);U.qseen[ck]=(U.qseen[ck]||[]).concat(k);saveUserLocal();return qs[k];
+}
+function nextQ(){
+  const c=S.cur;c.mode='q';if(!c.cs.flashEnd)c.cs.flashEnd=Date.now();$('hintBtn').style.visibility='visible';
+  const Q=pickQ();c.q=Q;c.qStart=Date.now();c.qHint=false;foot();
+  $('snote').textContent='Want to revisit the flashcards? Press ⏭ Skip concept, then choose the concept again.';
+  const L='ABCD'.slice(0,Q.options.length);
+  const opts=Q.optImg?`<img class="pic" src="${Q.optImg}" alt="options"><div class="og">${L.split('').map((l,i)=>`<button class="opt" onclick="answer(${i})">${l}</button>`).join('')}</div>`
+    :Q.options.map((o,i)=>`<button class="opt" onclick="answer(${i})">${L[i]}. ${rich(o)}</button>`).join('');
+  $('sbody').innerHTML=`<div class="scene"><div class="card" id="card"><div class="face"><h3>${rich(LIST(c)[c.ci].name)}${c.kind==='p'?' · CoMS':''}</h3>
+   <div class="q">${rich(Q.q)}</div>${Q.qImg?`<img class="pic" src="${Q.qImg}" alt="">`:''}${opts}</div><div class="face back" id="back"></div></div></div>`;
+}
+function answer(i){
+  const c=S.cur,Q=c.q,ok=i===Q.answer,time=Date.now()-c.qStart,L='ABCD',strip=t=>String(t||'').replace(/^\s*(<[^>]+>)*\s*(correct|not quite)\s*[!.:]?\s*(<\/[^>]+>)*\s*/i,'');
+  document.querySelectorAll('.opt').forEach(b=>b.disabled=true);c.cs.qSum+=time;if(!ok)c.cs.wrong++;
+  const cn=LIST(c)[c.ci];S.log.push({station:c.st.id,concept:plain(cn.name),kind:c.kind==='p'?'CoMS':'Main',round:S.round,q:plain(Q.q)||`(image question: ${plain(cn.name)})`,time,hint:c.qHint,correct:ok});
+  $('back').innerHTML=`<h3 class="${ok?'ok':'no'}">${ok?'✔ Correct!':'✘ Not quite!'}</h3>
+   <div class="res"><b>You chose:</b> ${L[i]}${Q.optImg?'':'. '+rich(Q.options[i])}</div>
+   <p>${rich(strip(Q.feedback[i]))}</p>
+   ${ok?'':`<p><b>Correct answer: ${L[Q.answer]}${Q.optImg?'':'. '+rich(Q.options[Q.answer])}</b></p><p><b>Why:</b> ${rich(strip(Q.feedback[Q.answer]))}</p>`}
+   ${Q.fbImg?`<img class="pic" src="${Q.fbImg}" alt="">`:''}
+   <button class="btn" onclick="${ok?'finishConcept()':'nextQ()'}">${ok?'Finish concept 🎉':'Next question'}</button>`;
+  setTimeout(()=>$('card').classList.add('flip'),250);
+}
+function showHint(){
+  const c=S.cur;if(!c||!c.q)return;c.cs.hint=true;c.qHint=true;
+  $('hTitle').textContent='Hint';$('hintText').innerHTML=(c.q.hint?`<p style="white-space:pre-line;font-size:17px">${rich(c.q.hint)}</p>`:'')+(c.q.hintImg?`<img class="pic" style="max-height:72vh" src="${c.q.hintImg}" alt="">`:'')||'xxx';
+  const l=S.log[S.log.length-1];if(l&&!document.querySelector('.opt:not(:disabled)')&&l.station===c.st.id)l.hint=true;
+  $('hov').classList.add('on');
+}
+function refSlides(c){
+  const cn=c&&c.ci!=null?LIST(c)[c.ci]:null,t=((cn&&cn.reference)||'').toLowerCase(),map=G.referenceMap||{},idx=[];
+  for(const k in map)if(t.includes(k))map[k].forEach(n=>{if(!idx.includes(n)&&REFS[n-1])idx.push(n)});
+  return idx;
+}
+function showRef(){
+  const c=S.cur;if(!c||c.mode!=='q')return;const idx=refSlides(c);if(!idx.length)return;
+  $('hTitle').textContent='Reference sheet (no points lost)';
+  $('hintText').innerHTML=idx.map(n=>`<img class="slide" style="max-height:none;margin-bottom:8px" src="${REFS[n-1]}" alt="reference sheet">`).join('');
+  $('hov').classList.add('on');
+}
+function award(){
+  STATIONS.forEach(st=>{
+    const f=st.concepts.map((_,i)=>S.cf['m|'+st.id+'|'+i]);
+    if(f.every(x=>x&&x.done)){addBadge(st.badges.done);if(f.every(x=>x.w0))addBadge(st.badges.perfect);if(f.every(x=>x.h0))addBadge(st.badges.indep)}
+    if(st.practice.length){const p=st.practice.map((_,i)=>S.cf['p|'+st.id+'|'+i]);
+      if(p.every(x=>x&&x.done)){addBadge(st.badges.prac);if(p.every(x=>x.w0))addBadge(st.badges.pracPerfect)}}
+  });
+  const allM=STATIONS.every(st=>st.concepts.every((_,i)=>S.cf['m|'+st.id+'|'+i]&&S.cf['m|'+st.id+'|'+i].done));
+  if(allM){addBadge(G.gameBadges.explorer);
+    if(STATIONS.every(st=>st.concepts.every((_,i)=>S.cf['m|'+st.id+'|'+i].w0)))addBadge(G.gameBadges.flawless);
+    if(STATIONS.every(st=>st.concepts.every((_,i)=>S.cf['m|'+st.id+'|'+i].h0)))addBadge(G.gameBadges.master)}
+  const wp=STATIONS.filter(s=>s.practice.length);
+  if(wp.length&&wp.every(st=>st.practice.every((_,i)=>S.cf['p|'+st.id+'|'+i]&&S.cf['p|'+st.id+'|'+i].done)))addBadge(G.gameBadges.practiceAll);
+}
+function finishConcept(){
+  const c=S.cur,st=c.st,i=c.ci,k=c.kind,key=k+'|'+st.id+'|'+i,dn=DN(c)[st.id],first=!dn[i];
+  const f=S.cf[key]||(S.cf[key]={done:false,w0:false,h0:false});f.done=true;f.w0=f.w0||c.cs.wrong===0;f.h0=f.h0||!c.cs.hint;
+  const name=plain(LIST(c)[i].name),v=endVisit(true);dn[i]=true;
+  if(first){(k==='p'?S.pRoute:S.cRoute).push(name);if(k==='m')S.st[st.id].time+=v.totalMs}
+  const wasDone=S.done[st.id];award();
+  if(k==='m'&&!wasDone&&dn.every(Boolean)){completeStation();return}
+  if(k==='p')S.pracDone[st.id]=dn.every(Boolean);
+  c.mode='between';c.ci=null;c.q=null;$('hintBtn').style.visibility='hidden';$('snote').textContent='';renderMap();foot();
+  $('sbody').innerHTML=`<div class="scene"><div class="face flat"><h3>✅ Concept complete!</h3><p style="font-size:17px">${first?'Progress saved.':'Replay finished – your badges have been updated.'} Concepts completed here: <b>${cnt(dn)} / ${dn.length}</b>.</p>
+   <button class="btn" onclick="showMenu()">Next concept</button><button class="btn g" onclick="leaveStation()">Leave station (progress saved)</button></div></div>`;
+}
+function completeStation(){
+  const c=S.cur,st=c.st,id=st.id,allH=st.concepts.every((_,i)=>S.cf['m|'+id+'|'+i].h0),pts=allH?G.points.noHint:G.points.hint;
+  S.done[id]=true;S.route.push(id);S.times[id]=S.st[id].time;S.score+=pts;renderMap();c.mode='between';$('hintBtn').style.visibility='hidden';$('foot').innerHTML='';$('snote').textContent='';
+  $('stitle').textContent=st.name+' cleared!';
+  $('sbody').innerHTML=`<div class="scene"><div class="face flat"><h3>🎉 ${esc(st.name)} complete (+${pts} pts)</h3>
+   <p style="font-size:18px">Congratulations you have completed ${esc(st.name)} station! Would you like to look at some concepts to see how it links to the Chemistry of Molecular Systems module!</p>
+   ${st.practice.length?`<button class="btn" onclick="S.cur={st:STATIONS.find(s=>s.id==='${id}'),kind:'p',mode:'menu',ci:null};showMenu()">Yes, show me the CoMS concepts</button>`:''}<button class="btn g" onclick="leaveStation()">Back to map</button></div></div>`;
+}
+function leaveStation(){
+  endVisit(false);S.cur=null;$('sov').classList.remove('on');$('hov').classList.remove('on');renderMap();
+  if(STATIONS.every(s=>S.done[s.id])&&!S.autoShown){S.autoShown=true;setTimeout(()=>showFinal('finished'),300)}
+}
+function exitStation(){
+  const c=S.cur;if(!c||c.mode==='menu'||c.mode==='between'){leaveStation();return}
+  $('hov').classList.remove('on');ask('Exit station?','You will lose your progress on the concept you are working on. Concepts you have already finished stay saved.','Exit station',leaveStation);
+}
+function askEnd(){ask('End the game?','This ends the game and shows your report, even if you have not finished everything. You can still continue to the next round from the report page.','End game and show report',()=>endGame('manual'))}
+function endGame(reason){endVisit(false);S.cur=null;$('sov').classList.remove('on');$('hov').classList.remove('on');$('xov').classList.remove('on');showFinal(reason)}
+
+/* ---------- data: local history + researcher sheet ---------- */
+function stats(){
+  const rows=[],crow=[],sm=(a,f)=>a.reduce((n,x)=>n+f(x),0);
+  STATIONS.forEach(st=>[['Main',st.concepts],['CoMS',st.practice]].forEach(([kind,L])=>{
+    if(!L.length)return;const lg=S.log.filter(l=>l.station===st.id&&l.kind===kind),vs=S.visits.filter(v=>v.station===st.id&&v.kind===kind);
+    rows.push({station:st.name,kind,seconds:sec(sm(vs,v=>v.totalMs)),attempted:lg.length,correct:lg.filter(l=>l.correct).length,wrong:lg.filter(l=>!l.correct).length,minRequired:L.length,hints:lg.filter(l=>l.hint).length,conceptsCompleted:cnt(kind==='Main'?S.cd[st.id]:S.pd[st.id]),conceptsTotal:L.length});
+    L.forEach(cn=>{const n=plain(cn.name),l2=lg.filter(l=>l.concept===n),v2=vs.filter(v=>v.concept===n);
+      crow.push({station:st.name,concept:n,kind,totalSeconds:sec(sm(v2,v=>v.totalMs)),flashSeconds:sec(sm(v2,v=>v.flashMs)),questionSeconds:sec(sm(v2,v=>v.qMs)),attempted:l2.length,correct:l2.filter(l=>l.correct).length,wrong:l2.filter(l=>!l.correct).length,hints:l2.filter(l=>l.hint).length,visits:v2.length})})}));
+  return{rows,crow};
+}
+function payload(reason){
+  const q=S.log.filter(l=>l.round===S.round).slice().sort((a,b)=>b.time-a.time),v=S.visits.filter(x=>x.round===S.round),pr=STATIONS.map(s=>`${s.name}: ${cnt(S.pd[s.id])}/${s.practice.length}`),{rows,crow}=stats();
+  const hc={};S.log.filter(l=>l.hint).forEach(l=>hc[nm(l.station)]=(hc[nm(l.station)]||0)+1);const mx=Math.max(0,...Object.values(hc));
+  const by={};Object.entries(U.earned||{}).forEach(([b,a])=>(by[a]=by[a]||[]).push(b));
+  return {v:2,type:'round',reason,username:U.name,attempt:S.n,round:S.round,totalAttemptsSoFar:S.n,restartedFrom:S.restartedFrom||'',continuedAfterEndPage:S.round>1,
+    startedAt:new Date(S.startedAt).toISOString(),roundStartedAt:new Date(S.roundStart).toISOString(),endedAt:new Date().toISOString(),
+    score:S.score,badges:S.badges,newBadgesThisAttempt:Object.keys(U.earned||{}).filter(b=>U.earned[b]===S.n),badgesByAttempt:Object.keys(by).sort((a,b)=>a-b).map(a=>`Attempt ${a}: ${by[a].join('; ')}`).join(' | '),
+    route:S.route.map(nm),stationsOpenedOrder:S.opened.map(nm),conceptRoute:S.cRoute,comsRoute:S.pRoute,
+    stationTimes:Object.fromEntries(Object.entries(S.times).map(([k,t])=>[nm(k),sec(t)])),comsProgress:pr,replays:S.n-1,
+    hintsUsed:S.log.filter(l=>l.hint).length,questionsAnswered:S.log.length,stationsTotal:STATIONS.length,stationsWithHints:Object.keys(hc).length,topHintStation:mx?Object.keys(hc).filter(k=>hc[k]===mx).join(' / ')+` (${mx})`:'none',
+    stations:rows,conceptSummary:crow,
+    questions:q.map((l,i)=>({rank:i+1,station:nm(l.station),concept:l.concept,kind:l.kind,q:l.q,seconds:sec(l.time),hint:l.hint,correct:l.correct})),
+    concepts:v.map(x=>({station:nm(x.station),concept:x.concept,kind:x.kind,flashSeconds:sec(x.flashMs),questionSeconds:sec(x.qMs),totalSeconds:sec(x.totalMs),wrong:x.wrong,hint:x.hint,completed:x.completed}))};
+}
+function beacon(p){if(!G.collectUrl)return;try{const b=new Blob([JSON.stringify(p)],{type:'text/plain;charset=UTF-8'});if(!(navigator.sendBeacon&&navigator.sendBeacon(G.collectUrl,b)))fetch(G.collectUrl,{method:'POST',mode:'no-cors',body:JSON.stringify(p),keepalive:true})}catch(e){}}
+function sendEvent(ev){if(S)beacon({type:'event',username:U.name,attempt:S.n,round:S.round,event:ev,at:new Date().toISOString()})}
+function send(reason){if(S.sent[S.round])return;S.sent[S.round]=true;beacon(payload(reason))}
+function saveRound(reason){
+  S.roundBadges[S.round]=S.badges.slice();
+  U.attempts.push({n:S.n,round:S.round,date:new Date().toLocaleString(),score:S.score,route:S.route.slice(),badges:S.badges.length,reason});
+  const all=loadU();all[U.key]=U;saveU(all);
+}
+function printReport(){
+  S.downloaded=true;sendEvent('downloaded_pdf');const t=document.title;document.title=`bond-voyage_${U.key.replace(/[^a-z0-9]/g,'_')}_attempt${S.n}_round${S.round}`;
+  window.print();setTimeout(()=>document.title=t,1500);
+}
+function goSurvey(){sendEvent('quit_to_survey');S.finished=true;if(G.surveyUrl)location.href=G.surveyUrl}
+function quitToSurvey(){if(S.downloaded)goSurvey();else ask('Leave without your report?','You have not downloaded your report (PDF) yet. If you quit now you will not be able to see it again.','Quit and open the survey',goSurvey)}
+function showFinal(reason){
+  S.finished=true;saveRound(reason);send(reason);
+  const mainLog=S.log.filter(l=>l.kind==='Main'),times=Object.entries(S.times).sort((a,b)=>b[1]-a[1]),longest=[...mainLog].sort((a,b)=>b.time-a.time).slice(0,5),hinted=S.log.filter(l=>l.hint);
+  const msg=reason==='timeout'?'The game ended automatically after 24 hours without activity.':reason==='closed'?'The game ended because the window was closed.':reason==='new_attempt'?'':'';
+  const surv=G.surveyUrl?`<a href="${G.surveyUrl}" target="_blank" rel="noopener">${esc(G.surveyUrl)}</a>`:'(link coming soon)';
+  $('finBody').innerHTML=`<div class="panel"><h2 style="font-size:16px">🏆 Report</h2><p>${esc(U.name)} · attempt ${S.n}, round ${S.round}</p>${msg?`<p><b>${msg}</b></p>`:''}
+   <p>Thank you for playing, don't forget to complete the post-game survey: ${surv}</p></div>
+   <div class="panel" style="break-inside:auto"><h3>Badges (${S.badges.length}/${BADGES.length})</h3>${BADGES.map(b=>`<div class="brow">${S.badges.includes(b)?`<span class="badge">🏅 ${esc(b)}${(U.earned&&U.earned[b]&&U.earned[b]!==S.n)?` · attempt ${U.earned[b]}`:''}</span>`:`<span class="badge lk">🔒 ${esc(b)}</span>`}<span class="bdesc">${esc(BDESC[b]||'')}</span></div>`).join('')}</div>
+   <div class="panel"><h3>Total score</h3><div style="font-size:28px;font-weight:800">${S.score} pts</div></div>
+   <div class="panel"><h3>Your station route</h3>${S.route.length?S.route.map(nm).join(' → '):'No stations completed yet'}</div>
+   <div class="panel"><h3>Your concept route</h3>${S.cRoute.length?S.cRoute.map(esc).join(' → '):'No concepts completed yet'}${S.pRoute.length?`<br><b>CoMS concepts:</b> ${S.pRoute.map(esc).join(' → ')}`:''}</div>
+   <div class="panel"><h3>Time per station (longest → shortest)</h3>${times.length?`<ol>${times.map(([k,t])=>`<li>${esc(nm(k))}: ${fmt(t)}</li>`).join('')}</ol>`:'No stations completed yet'}</div>
+   <div class="panel"><h3>Questions that took longest</h3><ol>${longest.map(l=>`<li>[${esc(nm(l.station))}] ${esc(l.q.slice(0,140))} — ${fmt(l.time)}</li>`).join('')}</ol></div>
+   <div class="panel"><h3>Questions you used hints for</h3>${hinted.length?'<ul>'+hinted.map(l=>`<li>[${esc(nm(l.station))}] ${esc(l.q.slice(0,140))}</li>`).join('')+'</ul>':'None – amazing!'}</div>
+   <div class="panel"><h3>CoMS concepts (optional, not scored)</h3>${STATIONS.map(s=>`<div>${esc(s.name)}: ${s.practice.length?cnt(S.pd[s.id])+'/'+s.practice.length:'coming soon'}</div>`).join('')}</div>
+   <div class="panel noprint"><h3>Your progress report</h3><p>${esc(G.reportNote||'')}</p><button class="btn g" onclick="printReport()">⬇ Download report (PDF)</button>
+   <p style="font-size:13px">Your browser's print window will open. Choose <b>Save as PDF</b> as the destination.</p>
+   <button class="btn" onclick="quitToSurvey()">Quit game &amp; open the post-game survey</button></div>
+   <div class="panel noprint"><button class="btn" onclick="nextRound()">Back to map – start round ${S.round+1}</button>
+   <p style="font-size:13px">Round ${S.round+1} lets you replay finished concepts to try for the no-wrong-answer and no-hint badges.</p>
+   <button class="btn r" onclick="askNew()">Start a new attempt</button></div>`;
+  $('fin').classList.add('on');
+}
+function nextRound(){sendEvent('next_round_click');S.round++;S.roundStart=Date.now();S.finished=false;S.cur=null;$('fin').classList.remove('on');lastAct=Date.now();renderMap()}
+const NEWMSG='If you start a new attempt you will <b>lose the progress of this attempt</b> and will not be able to see this report again, so download it first if you want to keep it. Badges you have already earned are kept, so you can aim for new ones!';
+function askNew(){ask('Start a new attempt?',NEWMSG,'Start new attempt',()=>{sendEvent('new_attempt_click_end_page');newGame('end page')})}
+function askNewMap(){ask('Start a new attempt?',NEWMSG,'Start new attempt',()=>{endVisit(false);S.cur=null;$('sov').classList.remove('on');if(!S.finished){saveRound('new_attempt');send('new_attempt')}newGame('map')})}
+/* ---------- timeout + closing the window ---------- */
+setInterval(()=>{if(S&&!S.finished&&Date.now()-lastAct>(G.inactivityHours||24)*3600e3)endGame('timeout')},60000);
+addEventListener('beforeunload',e=>{if(S&&!S.finished){e.preventDefault();e.returnValue='Are you sure? If you close this all your progress will be lost!';return e.returnValue}});
+addEventListener('pagehide',()=>{if(S&&!S.finished&&!S.sent[S.round]){endVisit(false);saveRound('closed');send('closed')}});
+</script>
+</body>
+</html>
