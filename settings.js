@@ -1,7 +1,7 @@
 // Edit this file on GitHub (pencil icon) – no need to touch anything else.
 window.SETTINGS = {
   // Paste your Google Apps Script Web app URL between the quotes (ends in /exec):
-  collectUrl: "",
+  collectUrl: "https://script.google.com/macros/s/AKfycbzvi7o1aXWoOQp-XyFJt3iAAZJZNr1WIoRtfS8I9jGdnvAtek1y-gqlBrC01Yyo0M3N/exec",
   // Post-game survey link (opened by the "Quit game & open the post-game survey" button):
   surveyUrl: "https://imperial.eu.qualtrics.com/jfe/form/SV_1GggyKZgeGMYHUa"
 };
